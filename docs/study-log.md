@@ -18,7 +18,7 @@ React + Vite + TypeScript + Tailwind 환경에서 순수 Three.js를 학습하�
 - [x] 5. 조명 (Ambient, Directional)과 Material 종류
 - [x] 6. 카메라 종류, 리사이즈 대응, OrbitControls
 - [x] 7. 좌표계, Transform(position, rotation, scale), Group
-- [ ] 8. 텍스처 / glTF 모델 로딩
+- [x] 8. 텍스처 / glTF 모델 로딩
 - [ ] 9. 그림자, 레이캐스팅(클릭 상호작용)
 - [ ] 10. twin-lab에 적용할 실제 장면 만들기
 
@@ -40,7 +40,9 @@ React + Vite + TypeScript + Tailwind 환경에서 순수 Three.js를 학습하�
 - 6단계 완료: 리사이즈 대응(handleResize) + OrbitControls
 - 7단계 완료: 큐브 3개를 Group으로 묶어 배치/크기 조절, 그룹 통째로 회전
   - 실수 기록: `group.rotation.y += 0.01`을 animate 밖에 써서 한 번만 실행됨. 반복돼야 하는 변경은 animate 안에 써야 한다
-- 다음: 로드맵 8단계 (텍스처 / glTF 모델 로딩)
+- 8단계 완료: 텍스처 입히기 + glTF 모델 로딩
+  - 샘플 파일: `public/textures/test.png`(격자 이미지), `public/models/house.gltf`(벽 wall / 지붕 roof 재질)
+- 다음: 로드맵 9단계 (그림자, 레이캐스팅)
 
 ## 개념 메모
 
@@ -51,6 +53,16 @@ React + Vite + TypeScript + Tailwind 환경에서 순수 Three.js를 학습하�
 - `scene.add(cube)`로 무대에 올린다
 - 물체와 카메라는 기본 좌표가 둘 다 (0, 0, 0)이라 `camera.position.z = 5`로 카메라를 뒤로 물려야 보인다
 - cleanup에서 `geometry.dispose()`, `material.dispose()`도 호출
+
+### 8단계: 텍스처와 glTF
+
+- **텍스처**: 표면에 입히는 이미지. `new THREE.TextureLoader().load('/textures/test.png')`로 불러오고 `material.map`에 붙인다. 색이 있는 이미지는 `texture.colorSpace = THREE.SRGBColorSpace` 지정
+- `public/` 폴더의 파일은 코드에서 `/파일경로`로 접근. cleanup에서 `texture.dispose()`
+- **glTF**: 3D 모델 표준 형식(`.gltf` 텍스트, `.glb` 바이너리). `GLTFLoader`(`three/addons/loaders/GLTFLoader.js`)로 불러온다
+- 로딩은 비동기라 `loader.load(경로, (gltf) => { ... })` 콜백 안에서 `scene.add(gltf.scene)`. `gltf` 변수는 콜백 안에서만 존재하므로 `console.log(gltf)`도 콜백 안에 써야 한다
+- `gltf.scene`은 파일 내용 전체를 담은 Group. 모델은 Group/Mesh 트리 구조이고 우리 scene에 통째로 붙여서 쓴다
+- 일부만 수정하려면 `house.traverse((child) => ...)`로 순회하며 `child instanceof THREE.Mesh`로 Mesh를 고르고 `material.name`으로 구분해서 `material.color.set(...)`. 같은 재질을 공유하는 Mesh는 같이 바뀜
+- 콘솔 디버깅: 큰 객체를 펼치지 말고 필요한 값만 `console.log`로 찍는다
 
 ### 7단계: 좌표계, Transform, Group
 
